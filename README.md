@@ -1,4 +1,5 @@
 # project-BolsiVibe
+
 ## Descripción
 
 BolsiVibe es una aplicación diseñada para ayudar a los usuarios a gestionar sus finanzas personales de manera eficiente y efectiva. Con BolsiVibe, puedes realizar un seguimiento de tus ingresos, gastos y ahorros, así como establecer presupuestos y metas financieras.
@@ -15,21 +16,28 @@ BolsiVibe es una aplicación diseñada para ayudar a los usuarios a gestionar su
 Para instalar y ejecutar BolsiVibe en tu máquina local, sigue estos pasos:
 
 1. Clona el repositorio:
-    ```bash
-    git clone https://github.com/tu-usuario/project-BolsiVibe.git
-    ```
+
+   ```bash
+   git clone https://github.com/tu-usuario/project-BolsiVibe.git
+   ```
+
 2. Navega al directorio del proyecto:
-    ```bash
-    cd project-BolsiVibe
-    ```
+
+   ```bash
+   cd project-BolsiVibe
+   ```
+
 3. Instala las dependencias:
-    ```bash
-    npm install
-    ```
+
+   ```bash
+   npm install
+   ```
+
 4. Inicia la aplicación:
-    ```bash
-    npm start
-    ```
+
+   ```bash
+   npm start
+   ```
 
 ## Uso
 
@@ -41,19 +49,25 @@ Las contribuciones son bienvenidas. Si deseas contribuir a BolsiVibe, por favor 
 
 1. Haz un fork del repositorio.
 2. Crea una nueva rama para tu función o corrección de errores:
-    ```bash
-    git checkout -b nombre-de-tu-rama
-    ```
+
+   ```bash
+   git checkout -b nombre-de-tu-rama
+   ```
+
 3. Realiza tus cambios y haz commit de ellos:
-    ```bash
-    git commit -m "Descripción de tus cambios"
-    ```
+
+   ```bash
+   git commit -m "Descripción de tus cambios"
+   ```
+
 4. Envía tus cambios al repositorio remoto:
-    ```bash
-    git push origin nombre-de-tu-rama
-    ```
+
+   ```bash
+   git push origin nombre-de-tu-rama
+   ```
+
 5. Abre un Pull Request en GitHub.
 
 ## Contacto
 
-Si tienes alguna pregunta o sugerencia, no dudes en ponerte en contacto con nosotros a través de [correo electrónico](mailto:contacto@bolsivibe.com).
+Si tienes alguna pregunta o sugerencia, no dudes en ponerte en contacto conmigo a través de [correo electrónico](mailto:rodo.aparicio.lopez@gmail.com).
