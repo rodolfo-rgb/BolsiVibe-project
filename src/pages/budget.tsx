@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Button } from "../components/ui/button";
-import { ChevronLeft, ChevronRight, Copy } from "lucide-react";
+import { ChevronLeft, ChevronRight, Copy, RefreshCw } from "lucide-react";
 import NewBudgetPlanForm from "../components/budget/NewBudgetPlanForm";
 import BudgetPlanReport from "../components/budget/BudgetPlanReport";
 import { Card } from "../components/ui/card";
@@ -16,46 +16,104 @@ const Budget = () => {
 
     const currentPlan = budgetPlans[currentPlanIndex];
 
-    // Cargar planes al iniciar
-    useEffect(() => {
-        const loadBudgetPlans = async () => {
-            if (!user) return;
+    // Función para cargar planes
+    const loadBudgetPlans = async () => {
+        if (!user) return;
 
-            const { data: plans, error } = await supabase
-                .from('budget_plans')
-                .select(`
+        const { data: plans, error } = await supabase
+            .from('budget_plans')
+            .select(`
             *,
             budget_expenses (*)
           `)
-                .eq('user_id', user.id)
-                .order('created_at', { ascending: false });
+            .eq('user_id', user.id)
+            .order('created_at', { ascending: false });
 
-            if (error) {
-                console.error('Error loading budget plans:', error);
-                toast({
-                    title: "Error",
-                    description: "No se pudieron cargar los planes de presupuesto",
-                    variant: "destructive",
-                });
-                return;
-            }
+        if (error) {
+            console.error('Error loading budget plans:', error);
+            toast({
+                title: "Error",
+                description: "No se pudieron cargar los planes de presupuesto",
+                variant: "destructive",
+            });
+            return;
+        }
 
-            if (plans) {
-                const formattedPlans: BudgetPlan[] = plans.map(plan => ({
-                    id: plan.id,
-                    initialBudget: plan.initial_budget,
-                    savingsPercentage: plan.savings_percentage,
-                    savingsAmount: plan.savings_amount,
-                    spendingAmount: plan.spending_amount,
-                    expenses: plan.budget_expenses,
-                    remainingAmount: plan.remaining_amount,
-                    date: plan.date,
-                }));
-                setBudgetPlans(formattedPlans);
+        if (plans) {
+            const formattedPlans: BudgetPlan[] = plans.map(plan => ({
+                id: plan.id,
+                initialBudget: plan.initial_budget,
+                savingsPercentage: plan.savings_percentage,
+                savingsAmount: plan.savings_amount,
+                spendingAmount: plan.spending_amount,
+                expenses: plan.budget_expenses,
+                remainingAmount: plan.remaining_amount,
+                date: plan.date,
+            }));
+            setBudgetPlans(formattedPlans);
+        }
+    };
+
+    // Cargar planes al iniciar
+    useEffect(() => {
+        loadBudgetPlans();
+    }, [user]);
+
+    // Recargar datos cuando la ventana vuelve a estar visible (útil cuando se cambia de pestaña)
+    useEffect(() => {
+        const handleVisibilityChange = () => {
+            if (document.visibilityState === 'visible' && user) {
+                loadBudgetPlans();
             }
         };
 
-        loadBudgetPlans();
+        document.addEventListener('visibilitychange', handleVisibilityChange);
+        
+        // También refrescar periódicamente cada 30 segundos mientras la página está visible
+        const intervalId = setInterval(() => {
+            if (document.visibilityState === 'visible' && user) {
+                loadBudgetPlans();
+            }
+        }, 30000);
+
+        return () => {
+            document.removeEventListener('visibilitychange', handleVisibilityChange);
+            clearInterval(intervalId);
+        };
+    }, [user]);
+
+    // Suscripción a cambios en budget_expenses para actualizar en tiempo real
+    useEffect(() => {
+        if (!user) return;
+
+        const channel = supabase
+            .channel('budget_expenses_changes')
+            .on(
+                'postgres_changes',
+                {
+                    event: 'UPDATE',
+                    schema: 'public',
+                    table: 'budget_expenses'
+                },
+                (payload) => {
+                    // Actualizar el estado local cuando un gasto se marca como pagado
+                    setBudgetPlans(prevPlans => 
+                        prevPlans.map(plan => ({
+                            ...plan,
+                            expenses: plan.expenses.map(expense => 
+                                expense.id === payload.new.id 
+                                    ? { ...expense, is_paid: payload.new.is_paid, transaction_id: payload.new.transaction_id }
+                                    : expense
+                            )
+                        }))
+                    );
+                }
+            )
+            .subscribe();
+
+        return () => {
+            supabase.removeChannel(channel);
+        };
     }, [user]);
 
     const handlePlanCreated = (plan: BudgetPlan) => {
@@ -208,6 +266,14 @@ const Budget = () => {
                     </div>
 
                     <div className="flex gap-2">
+                        <Button
+                            variant="outline"
+                            size="icon"
+                            onClick={() => loadBudgetPlans()}
+                            title="Actualizar estados"
+                        >
+                            <RefreshCw className="h-4 w-4" />
+                        </Button>
                         <Button
                             variant="outline"
                             onClick={handleCopyPreviousPlan}

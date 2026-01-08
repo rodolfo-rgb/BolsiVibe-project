@@ -86,7 +86,7 @@ const Header: React.FC = () => {
                         ))}
                     </ol>
                 </nav>
-                <h6 className="block antialiased tracking-normal font-sans text-base font-semibold leading-relaxed text-gray-900">
+                <h6 className="block antialiased tracking-normal font-sans text-base font-semibold leading-relaxed text-foreground">
                     {pathSegments[pathSegments.length - 1]?.name || "principal"}
                 </h6>
             </div>

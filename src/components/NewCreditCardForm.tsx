@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "./ui/sheet";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "./ui/form";
@@ -6,6 +6,7 @@ import { Input } from "./ui/input";
 import { Button } from "./ui/button";
 import { useToast } from "../hooks/use-toast";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
+import { BankType, BANK_CONFIGS } from "../types/creditCard";
 
 interface NewCreditCardFormProps {
   isOpen: boolean;
@@ -15,17 +16,24 @@ interface NewCreditCardFormProps {
     limit_amount: number;
     payment_day: number;
     cutoff_day: number;
+    bank: BankType;
+    bank_name?: string;
+    expiration_date?: string;
   }) => Promise<void>;
   initialValues?: {
     name: string;
     limit_amount?: number;
     payment_day?: number;
     cutoff_day?: number;
+    bank?: BankType;
+    bank_name?: string;
+    expiration_date?: string;
   };
 }
 
 const NewCreditCardForm = ({ isOpen, onClose, onSubmit, initialValues }: NewCreditCardFormProps) => {
   const { toast } = useToast();
+  const [showCustomBankName, setShowCustomBankName] = useState(false);
   const form = useForm({
     defaultValues: {
       name: "",
@@ -33,16 +41,27 @@ const NewCreditCardForm = ({ isOpen, onClose, onSubmit, initialValues }: NewCred
       cutoff_month: "1",
       cutoff_day: 1,
       payment_day: 1,
+      bank: "otro" as BankType,
+      bank_name: "",
+      expiration_month: "",
+      expiration_year: "",
     },
   });
 
   useEffect(() => {
     if (initialValues) {
+      const bank = initialValues.bank || "otro";
+      setShowCustomBankName(bank === "otro");
+      const [expMonth, expYear] = initialValues.expiration_date?.split('/') || ["", ""];
       form.reset({
         ...initialValues,
         cutoff_month: "1",
         cutoff_day: initialValues.cutoff_day || 1,
         payment_day: initialValues.payment_day || 1,
+        bank,
+        bank_name: initialValues.bank_name || "",
+        expiration_month: expMonth || "",
+        expiration_year: expYear || "",
       });
     }
   }, [initialValues, form]);
@@ -83,13 +102,21 @@ const NewCreditCardForm = ({ isOpen, onClose, onSubmit, initialValues }: NewCred
     const paymentDay = calculatePaymentDay(data.cutoff_day);
 
     try {
+      const expirationDate = data.expiration_month && data.expiration_year 
+        ? `${data.expiration_month.padStart(2, '0')}/${data.expiration_year}` 
+        : undefined;
+      
       await onSubmit({
         name: data.name,
         limit_amount: data.limit_amount,
         cutoff_day: data.cutoff_day,
         payment_day: paymentDay,
+        bank: data.bank as BankType,
+        bank_name: data.bank === "otro" ? data.bank_name : undefined,
+        expiration_date: expirationDate,
       });
       form.reset();
+      setShowCustomBankName(false);
       onClose();
     } catch (error: any) {
       if (error?.message?.includes('unique constraint')) {
@@ -144,6 +171,51 @@ const NewCreditCardForm = ({ isOpen, onClose, onSubmit, initialValues }: NewCred
                 </FormItem>
               )}
             />
+            <FormField
+              control={form.control}
+              name="bank"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Banco</FormLabel>
+                  <Select 
+                    onValueChange={(value) => {
+                      field.onChange(value);
+                      setShowCustomBankName(value === "otro");
+                    }} 
+                    value={field.value}
+                  >
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Selecciona el banco" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      {Object.entries(BANK_CONFIGS).map(([key, config]) => (
+                        <SelectItem key={key} value={key}>
+                          {config.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            {showCustomBankName && (
+              <FormField
+                control={form.control}
+                name="bank_name"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Nombre del Banco</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Ej: Banco Regional" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            )}
             <FormField
               control={form.control}
               name="limit_amount"
@@ -209,6 +281,57 @@ const NewCreditCardForm = ({ isOpen, onClose, onSubmit, initialValues }: NewCred
                 </FormItem>
               )}
             />
+            <div className="space-y-2">
+              <FormLabel>Fecha de Expiración</FormLabel>
+              <div className="flex gap-2">
+                <FormField
+                  control={form.control}
+                  name="expiration_month"
+                  render={({ field }) => (
+                    <FormItem className="flex-1">
+                      <Select onValueChange={field.onChange} value={field.value}>
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Mes" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {Array.from({ length: 12 }, (_, i) => i + 1).map((month) => (
+                            <SelectItem key={month} value={String(month)}>
+                              {String(month).padStart(2, '0')}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="expiration_year"
+                  render={({ field }) => (
+                    <FormItem className="flex-1">
+                      <Select onValueChange={field.onChange} value={field.value}>
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Año" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {Array.from({ length: 15 }, (_, i) => new Date().getFullYear() + i).map((year) => (
+                            <SelectItem key={year} value={String(year).slice(-2)}>
+                              {year}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+            </div>
             <Button type="submit" className="w-full">
               {initialValues ? "Guardar Cambios" : "Agregar Tarjeta"}
             </Button>

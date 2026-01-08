@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { supabase } from "../integrations/supabase/client";
 import { useToast } from "../hooks/use-toast";
-import { CreditCard } from "../types/creditCard";
+import { CreditCard, BankType } from "../types/creditCard";
 import { useAuth } from "../lib/auth";
 
 export const useCreditCards = () => {
@@ -46,6 +46,9 @@ export const useCreditCards = () => {
         limit_amount: number;
         payment_day: number;
         cutoff_day: number;
+        bank: BankType;
+        bank_name?: string;
+        expiration_date?: string;
     }) => {
         if (!user) {
             toast({
@@ -82,6 +85,9 @@ export const useCreditCards = () => {
         limit_amount: number;
         payment_day: number;
         cutoff_day: number;
+        bank?: BankType;
+        bank_name?: string;
+        expiration_date?: string;
     }) => {
         if (!user) {
             throw new Error("Usuario no autenticado");
@@ -118,6 +124,18 @@ export const useCreditCards = () => {
         }
 
         try {
+            // Primero eliminar las transacciones asociadas a esta tarjeta
+            const { error: transactionsError } = await supabase
+                .from("transactions")
+                .delete()
+                .eq("credit_card_id", cardId);
+
+            if (transactionsError) {
+                console.error("Error deleting associated transactions:", transactionsError);
+                // Continuar con la eliminación de la tarjeta aunque falle
+            }
+
+            // Luego eliminar la tarjeta
             const { error } = await supabase
                 .from("credit_cards")
                 .delete()

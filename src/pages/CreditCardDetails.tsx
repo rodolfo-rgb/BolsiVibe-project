@@ -7,7 +7,7 @@ import { Input } from "../components/ui/input";
 import { useToast } from "../components/ui/use-toast";
 import { supabase } from "../integrations/supabase/client";
 import { Transaction } from "../types/transaction";
-import { CreditCard } from "../types/creditCard";
+import { CreditCard, BankType, BANK_CONFIGS } from "../types/creditCard";
 import { useAuth } from "../lib/auth";
 
 import styled from "styled-components";
@@ -15,6 +15,8 @@ import styled from "styled-components";
 interface CreditCardDisplayProps {
     type: string;
     expiryDate: string;
+    bank?: BankType;
+    bankName?: string;
 }
 
 const StyledWrapper = styled.div`
@@ -154,21 +156,35 @@ const StyledWrapper = styled.div`
 
   .flip-card-front {
     box-shadow: rgba(0, 0, 0, 0.4) 0px 2px 2px, rgba(0, 0, 0, 0.3) 0px 7px 13px -3px, rgba(0, 0, 0, 0.2) 0px -1px 0px inset;
-    background-color: #171717;
+    background: var(--card-gradient, linear-gradient(135deg, #171717 0%, #2a2a2a 50%, #3d3d3d 100%));
   }
 
   .flip-card-back {
     box-shadow: rgba(0, 0, 0, 0.4) 0px 2px 2px, rgba(0, 0, 0, 0.3) 0px 7px 13px -3px, rgba(0, 0, 0, 0.2) 0px -1px 0px inset;
-    background-color: #171717;
+    background: var(--card-gradient, linear-gradient(135deg, #171717 0%, #2a2a2a 50%, #3d3d3d 100%));
     transform: rotateY(180deg);
+  }
+  
+  .bank-name {
+    position: absolute;
+    font-weight: bold;
+    font-size: 0.6em;
+    top: 2em;
+    left: 2em;
+    letter-spacing: 0.1em;
   }`;
 
 
-const CreditCardDisplay = ({ }: CreditCardDisplayProps) => (
-    <StyledWrapper>
+const CreditCardDisplay = ({ bank, bankName }: CreditCardDisplayProps) => {
+    const bankConfig = bank ? BANK_CONFIGS[bank] : BANK_CONFIGS.otro;
+    const displayBankName = bank === 'otro' && bankName ? bankName : bankConfig.name;
+    
+    return (
+    <StyledWrapper style={{ '--card-gradient': bankConfig.gradient } as React.CSSProperties}>
         <div className="flip-card">
             <div className="flip-card-inner">
                 <div className="flip-card-front">
+                    <p className="bank-name">{displayBankName.toUpperCase()}</p>
                     <p className="heading_8264">MASTERCARD</p>
                     <svg className="logo" xmlns="http://www.w3.org/2000/svg" x="0px" y="0px" width={36} height={36} viewBox="0 0 48 48">
                         <path fill="#ff9800" d="M32 10A14 14 0 1 0 32 38A14 14 0 1 0 32 10Z" /><path fill="#d50000" d="M16 10A14 14 0 1 0 16 38A14 14 0 1 0 16 10Z" /><path fill="#ff3d00" d="M18,24c0,4.755,2.376,8.95,6,11.48c3.624-2.53,6-6.725,6-11.48s-2.376-8.95-6-11.48 C20.376,15.05,18,19.245,18,24z" />
@@ -236,6 +252,7 @@ const CreditCardDisplay = ({ }: CreditCardDisplayProps) => (
         </div>
     </StyledWrapper>
 );
+};
 
 const CreditCardDetails = () => {
     const { id } = useParams();
@@ -356,6 +373,8 @@ const CreditCardDetails = () => {
                             <CreditCardDisplay
                                 type="visa"
                                 expiryDate={`${card.cutoff_day}/${new Date().getFullYear()}`}
+                                bank={card.bank}
+                                bankName={card.bank_name}
                             />
                         </div>
                         <div className="flex items-center space-x-2">

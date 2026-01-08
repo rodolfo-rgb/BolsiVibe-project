@@ -8,9 +8,9 @@ export const formatTransactionData = (data: TransactionFormData, userId: string)
         description: data.description,
         date: data.date,
         user_id: userId,
-        account_id: data.account_id,
-        destination_account_id: data.destination_account_id,
-        credit_card_id: data.credit_card_id,
+        account_id: data.account_id || null,
+        destination_account_id: data.destination_account_id || null,
+        credit_card_id: data.credit_card_id || null,
     };
 };
 

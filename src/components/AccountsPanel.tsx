@@ -68,7 +68,7 @@ const AccountsPanel = () => {
 
   return (
     <>
-      <Card className="w-full max-w-2xl mx-auto">
+      <Card className="w-full h-full border shadow-md bg-card hover:shadow-lg transition-shadow">
         <AccountsPanelHeader onNewAccount={() => setIsNewAccountFormOpen(true)} />
         <CardContent>
           <AccountsList

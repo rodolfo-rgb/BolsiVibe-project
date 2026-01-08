@@ -30,11 +30,11 @@ const DeleteCardDialog = ({
         try {
             setIsDeleting(true);
             await onConfirm();
-            onClose();
         } catch (error) {
             console.error("Error deleting card:", error);
         } finally {
             setIsDeleting(false);
+            onClose();
         }
     };
 

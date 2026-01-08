@@ -46,6 +46,33 @@ export const useTransactions = () => {
         }
     };
 
+    const updateCreditCardBalance = async (creditCardId: string, amount: number) => {
+        // Get current balance
+        const { data: card, error: fetchError } = await supabase
+            .from("credit_cards")
+            .select("current_balance")
+            .eq("id", creditCardId)
+            .single();
+
+        if (fetchError) {
+            console.error("Error al obtener el saldo de la tarjeta:", fetchError);
+            throw fetchError;
+        }
+
+        const currentBalance = card?.current_balance ?? 0;
+        const newBalance = currentBalance + amount;
+
+        const { error: updateError } = await supabase
+            .from("credit_cards")
+            .update({ current_balance: newBalance, updated_at: new Date().toISOString() })
+            .eq("id", creditCardId);
+
+        if (updateError) {
+            console.error("Error al actualizar el saldo de la tarjeta:", updateError);
+            throw updateError;
+        }
+    };
+
     const addTransaction = async (data: TransactionFormData) => {
         if (!user) {
             toast({
@@ -75,10 +102,20 @@ export const useTransactions = () => {
                 await updateAccountBalance(data.destination_account_id, data.amount);
             } else if (data.type === "expense" && data.account_id) {
                 await updateAccountBalance(data.account_id, -data.amount);
+            } else if (data.type === "expense" && data.credit_card_id) {
+                // Update credit card balance (increase debt)
+                await updateCreditCardBalance(data.credit_card_id, data.amount);
+            } else if (data.type === "credit_payment" && data.credit_card_id && data.account_id) {
+                // Update credit card balance (decrease debt)
+                await updateCreditCardBalance(data.credit_card_id, -data.amount);
+                // Deduct payment amount from the account
+                await updateAccountBalance(data.account_id, -data.amount);
             }
 
             // Update budget expense if it exists
+            console.log("budget_expense_id recibido:", data.budget_expense_id);
             if (data.budget_expense_id) {
+                console.log("Actualizando gasto del presupuesto:", data.budget_expense_id);
                 const { error: updateError } = await supabase
                     .from('budget_expenses')
                     .update({
@@ -91,6 +128,7 @@ export const useTransactions = () => {
                     console.error("Error al actualizar el gasto del presupuesto:", updateError);
                     throw updateError;
                 }
+                console.log("Gasto del presupuesto actualizado exitosamente");
             }
 
             setTransactions((prev) => [newTransaction as Transaction, ...prev]);
@@ -150,6 +188,16 @@ export const useTransactions = () => {
                 await updateAccountBalance(transaction.destination_account_id, -transaction.amount);
             } else if (transaction.type === "expense" && transaction.account_id) {
                 await updateAccountBalance(transaction.account_id, transaction.amount);
+            } else if (transaction.type === "expense" && transaction.credit_card_id) {
+                // Reverse credit card balance (decrease debt)
+                await updateCreditCardBalance(transaction.credit_card_id, -transaction.amount);
+            } else if (transaction.type === "credit_payment" && transaction.credit_card_id) {
+                // Reverse credit card payment (increase debt back)
+                await updateCreditCardBalance(transaction.credit_card_id, transaction.amount);
+                // Reverse account deduction (add money back)
+                if (transaction.account_id) {
+                    await updateAccountBalance(transaction.account_id, transaction.amount);
+                }
             }
 
             setTransactions((prev) => prev.filter((t) => t.id !== transaction.id));

@@ -1,5 +1,5 @@
 import { useNavigate } from "react-router-dom";
-import { CreditCard } from "../../types/creditCard";
+import { CreditCard, BANK_CONFIGS } from "../../types/creditCard";
 
 interface CardsListProps {
     cards: CreditCard[];
@@ -11,20 +11,28 @@ const CardsList = ({ cards, showAmounts }: CardsListProps) => {
 
     return (
         <div className="space-y-4">
-            {cards.map((card) => (
+            {cards.map((card) => {
+                const bankConfig = card.bank ? BANK_CONFIGS[card.bank] : BANK_CONFIGS.otro;
+                const displayBankName = card.bank === 'otro' && card.bank_name ? card.bank_name : bankConfig.name;
+                
+                return (
                 <div
                     key={card.id}
-                    className="flex items-center justify-between p-4 bg-secondary rounded-lg cursor-pointer hover:bg-secondary/80 transition-colors"
+                    className="flex items-center justify-between p-4 bg-secondary rounded-lg cursor-pointer hover:bg-secondary/80 transition-colors border-l-4"
+                    style={{ borderLeftColor: bankConfig.primaryColor }}
                     onClick={() => navigate(`/credit-card/${card.id}`)}
                 >
-                    <span className="font-medium">{card.name}</span>
+                    <div className="flex flex-col">
+                        <span className="font-medium">{card.name}</span>
+                        <span className="text-xs text-muted-foreground">{displayBankName}</span>
+                    </div>
                     <span className="text-lg text-destructive">
                         {showAmounts
                             ? `$${(card.current_balance || 0).toLocaleString("es-ES")}`
                             : "••••••"}
                     </span>
                 </div>
-            ))}
+            )})}
         </div>
     );
 };

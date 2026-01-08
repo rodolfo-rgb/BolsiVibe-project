@@ -126,8 +126,14 @@ const TransactionsPanel = () => {
 
     const filteredTransactions = transactions.filter((transaction) => {
         if (filter === "all") return true;
-        if (filter === "credit") return transaction.type === "credit_payment";
-        return transaction.type === "income" || transaction.type === "expense";
+        if (filter === "credit") {
+            // Show credit card payments and expenses made with credit cards
+            return transaction.type === "credit_payment" || 
+                   (transaction.type === "expense" && transaction.credit_card_id);
+        }
+        // Show account-based transactions (income or expenses from accounts, not credit cards)
+        return transaction.type === "income" || 
+               (transaction.type === "expense" && transaction.account_id && !transaction.credit_card_id);
     });
 
     const handleDeleteTransaction = async (transaction: Transaction) => {

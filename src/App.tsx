@@ -14,6 +14,7 @@ import AuthPage from "./components/auth/AuthPage";
 import { SidebarProvider } from "./components/ui/sidebar";
 import { Toaster } from "./components/ui/toaster";
 import { AuthProvider, useAuth } from "./lib/auth";
+import { ThemeProvider } from "./hooks/useTheme";
 
 function AppContent() {
   const { session } = useAuth();
@@ -57,9 +58,11 @@ function AppContent() {
 
 function App() {
   return (
-    <AuthProvider>
-      <AppContent />
-    </AuthProvider>
+    <ThemeProvider>
+      <AuthProvider>
+        <AppContent />
+      </AuthProvider>
+    </ThemeProvider>
   );
 }
 

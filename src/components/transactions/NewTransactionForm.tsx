@@ -22,6 +22,7 @@ const transactionSchema = z.object({
     destination_account_id: z.string().optional(),
     credit_card_id: z.string().optional(),
     source: z.string().optional(),
+    budget_expense_id: z.string().optional(),
 }).refine((data) => {
     if (data.type === "expense") {
         return (!!data.account_id || !!data.credit_card_id) && !data.destination_account_id;
@@ -30,7 +31,8 @@ const transactionSchema = z.object({
         return !!data.destination_account_id && !data.account_id && !data.credit_card_id;
     }
     if (data.type === "credit_payment") {
-        return !!data.credit_card_id && !data.account_id && !data.destination_account_id;
+        // Credit payment requires both a credit card AND an account to pay from
+        return !!data.credit_card_id && !!data.account_id && !data.destination_account_id;
     }
     return true;
 }, {
@@ -58,6 +60,7 @@ const NewTransactionForm = ({ isOpen, onClose, onSubmit, accounts }: NewTransact
             account_id: undefined,
             destination_account_id: undefined,
             credit_card_id: undefined,
+            budget_expense_id: undefined,
         },
     });
 
@@ -109,7 +112,7 @@ const NewTransactionForm = ({ isOpen, onClose, onSubmit, accounts }: NewTransact
                         <CommonFields form={form} onTypeChange={handleTypeChange} />
 
                         {form.watch("type") === "expense" && (
-                            <ExpenseFields form={form} accounts={accounts} />
+                            <ExpenseFields form={form} accounts={accounts} isOpen={isOpen} />
                         )}
 
                         {form.watch("type") === "income" && (
@@ -117,7 +120,7 @@ const NewTransactionForm = ({ isOpen, onClose, onSubmit, accounts }: NewTransact
                         )}
 
                         {form.watch("type") === "credit_payment" && (
-                            <CreditPaymentFields form={form} creditCards={creditCards} />
+                            <CreditPaymentFields form={form} creditCards={creditCards} accounts={accounts} />
                         )}
 
                         <div className="flex justify-end space-x-2">

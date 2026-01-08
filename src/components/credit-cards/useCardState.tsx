@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useToast } from "../../hooks/use-toast";
 import { useCreditCards } from "../../hooks/useCreditCards";
-import { CreditCard } from "../../types/creditCard";
+import { CreditCard, BankType } from "../../types/creditCard";
 import { useAuth } from "../../lib/auth";
 
 export const useCardState = () => {
@@ -19,6 +19,9 @@ export const useCardState = () => {
         limit_amount: number;
         payment_day: number;
         cutoff_day: number;
+        bank: BankType;
+        bank_name?: string;
+        expiration_date?: string;
     }) => {
         if (!user) {
             toast({
@@ -54,6 +57,9 @@ export const useCardState = () => {
         limit_amount: number;
         payment_day: number;
         cutoff_day: number;
+        bank: BankType;
+        bank_name?: string;
+        expiration_date?: string;
     }) => {
         if (!user || !cardToEdit) {
             toast({
@@ -95,18 +101,21 @@ export const useCardState = () => {
             return;
         }
 
+        const cardId = cardToDelete.id;
+        const cardName = cardToDelete.name;
+
         try {
-            await deleteCreditCard(cardToDelete.id);
+            await deleteCreditCard(cardId);
             toast({
                 title: "Tarjeta eliminada",
-                description: `La tarjeta ha sido eliminada exitosamente.`,
-                variant: "destructive",
+                description: `La tarjeta ${cardName} ha sido eliminada exitosamente.`,
             });
             setCardToDelete(null);
-        } catch (error) {
+        } catch (error: any) {
+            console.error("Error deleting card:", error);
             toast({
-                title: "Error",
-                description: "No se pudo eliminar la tarjeta",
+                title: "Error al eliminar",
+                description: error?.message || "No se pudo eliminar la tarjeta. Verifica que no tenga transacciones asociadas.",
                 variant: "destructive",
             });
             throw error;

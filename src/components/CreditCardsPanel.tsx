@@ -25,7 +25,7 @@ const CreditCardsPanel = () => {
   } = useCardState();
 
   return (
-    <Card className="w-full max-w-2xl mx-auto mt-6">
+    <Card className="w-full h-full border shadow-md bg-card hover:shadow-lg transition-shadow">
       <CardHeader>
         <PanelHeader
           showAmounts={showAmounts}
