@@ -46,6 +46,7 @@ export const useCreditCards = () => {
         limit_amount: number;
         payment_day: number;
         cutoff_day: number;
+        days_until_payment: number;
         bank: BankType;
         bank_name?: string;
         expiration_date?: string;
@@ -85,6 +86,7 @@ export const useCreditCards = () => {
         limit_amount: number;
         payment_day: number;
         cutoff_day: number;
+        days_until_payment?: number;
         bank?: BankType;
         bank_name?: string;
         expiration_date?: string;

@@ -4,7 +4,8 @@ import { useToast } from "../components/ui/use-toast";
 import { Transaction } from "../types/transaction";
 import { useAuth } from "../lib/auth";
 import { TransactionFormData } from "../types/transaction-types";
-import { formatTransactionData, handleError } from "../utils/transaction-utils";
+import { formatTransactionData, handleError, getCreditCardTransactionDates } from "../utils/transaction-utils";
+import { CreditCard } from "../types/creditCard";
 
 export const useTransactions = () => {
     const [transactions, setTransactions] = useState<Transaction[]>([]);
@@ -84,7 +85,30 @@ export const useTransactions = () => {
         }
 
         try {
-            const transactionData = formatTransactionData(data, user.id);
+            let transactionData = formatTransactionData(data, user.id);
+            
+            // Si es una transacción con tarjeta de crédito, calcular fechas de corte y pago
+            if (data.credit_card_id && data.type === "expense") {
+                // Obtener información de la tarjeta para calcular las fechas
+                const { data: creditCard, error: cardError } = await supabase
+                    .from("credit_cards")
+                    .select("*")
+                    .eq("id", data.credit_card_id)
+                    .single();
+                
+                if (cardError) {
+                    console.error("Error al obtener la tarjeta:", cardError);
+                    throw cardError;
+                }
+                
+                // Calcular y agregar fechas de corte y pago
+                const cardDates = getCreditCardTransactionDates(data.date, creditCard as CreditCard);
+                transactionData = {
+                    ...transactionData,
+                    ...cardDates,
+                };
+            }
+            
             console.log("Datos de transacción formateados:", transactionData);
 
             const { data: newTransaction, error: transactionError } = await supabase

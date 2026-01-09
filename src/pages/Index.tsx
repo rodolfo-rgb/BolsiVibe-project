@@ -4,9 +4,12 @@ import { Button } from "../components/ui/button";
 import AccountsPanel from "../components/AccountsPanel";
 import CreditCardsPanel from "../components/CreditCardsPanel";
 import CardPaymentAlerts from "../components/CardPaymentAlerts";
+import ExpensesByCategoryChart from "../components/charts/ExpensesByCategoryChart";
+import GoalsWidget from "../components/goals/GoalsWidget";
 import { useAccounts } from "../hooks/useAccounts";
 import { useTransactions } from "../hooks/useTransactions";
 import { useCreditCards } from "../hooks/useCreditCards";
+import { useSavingsGoals } from "../hooks/useSavingsGoals";
 import {
     Eye,
     EyeOff,
@@ -16,22 +19,24 @@ import {
     CreditCard,
     ArrowUpRight,
     ArrowDownRight,
+    PieChart,
 } from "lucide-react";
 
 const Index = () => {
     const { getTotalBalance, accounts } = useAccounts();
     const { transactions } = useTransactions();
     const { creditCards } = useCreditCards();
+    const { goals } = useSavingsGoals();
     const [showAmounts, setShowAmounts] = useState(true);
 
     // Calculate total income and expenses from transactions
     const totalIncome = transactions
         .filter((t) => t.type === "income")
-        .reduce((sum, t) => sum + t.amount, 0);
+        .reduce((sum, t) => sum + Math.abs(t.amount), 0);
 
     const totalExpenses = transactions
         .filter((t) => t.type === "expense")
-        .reduce((sum, t) => sum + t.amount, 0);
+        .reduce((sum, t) => sum + Math.abs(t.amount), 0);
 
     const totalBalance = getTotalBalance();
     const totalDebt = creditCards.reduce((sum, card) => sum + (card.current_balance || 0), 0);
@@ -127,7 +132,11 @@ const Index = () => {
                 </Card>
 
                 {/* Card Payment Alerts */}
-                <CardPaymentAlerts creditCards={creditCards} />
+                <CardPaymentAlerts 
+                    creditCards={creditCards} 
+                    transactions={transactions}
+                    daysBeforeAlert={5}
+                />
 
                 {/* Quick Stats */}
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
@@ -204,6 +213,20 @@ const Index = () => {
                         <div className="flex-1">
                             <CreditCardsPanel />
                         </div>
+                    </div>
+                </div>
+
+                {/* Expenses Chart and Goals Section */}
+                <div className="grid lg:grid-cols-2 gap-6">
+                    <div className="flex flex-col gap-3">
+                        <h2 className="text-sm font-medium text-muted-foreground flex items-center gap-2 px-1">
+                            <PieChart className="h-4 w-4" />
+                            Distribución de Gastos
+                        </h2>
+                        <ExpensesByCategoryChart transactions={transactions} title="Gastos por Categoría" />
+                    </div>
+                    <div className="flex flex-col gap-3">
+                        <GoalsWidget goals={goals} />
                     </div>
                 </div>
             </div>

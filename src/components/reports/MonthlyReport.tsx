@@ -16,7 +16,7 @@ import TransactionsSection from "./sections/TransactionsSection";
 import ExpensesCategorySection from "./sections/ExpensesCategorySection";
 import { GoalsSection } from "./sections/GoalsSection";
 
-const QuinceReport = () => {
+const MonthlyReport = () => {
     const { accounts, getTotalBalance } = useAccounts();
     const { creditCards } = useCreditCards();
     const { transactions } = useTransactions();
@@ -128,4 +128,4 @@ const QuinceReport = () => {
     );
 };
 
-export default QuinceReport;
+export default MonthlyReport;

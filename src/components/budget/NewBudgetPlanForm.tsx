@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
 import { Label } from "../ui/label";
@@ -7,17 +7,48 @@ import { useToast } from "../../hooks/use-toast";
 import ExpensesSelection from "./ExpensesSelection";
 import { supabase } from "../../integrations/supabase/client";
 import { useAuth } from "../../lib/auth";
+import { addMonths, startOfMonth, format, isSameMonth } from "date-fns";
+import { es } from "date-fns/locale";
+import { Calendar } from "lucide-react";
 
 interface NewBudgetPlanFormProps {
     onPlanCreated: (plan: BudgetPlan) => void;
+    existingPlans?: BudgetPlan[];
 }
 
-const NewBudgetPlanForm = ({ onPlanCreated }: NewBudgetPlanFormProps) => {
+const NewBudgetPlanForm = ({ onPlanCreated, existingPlans = [] }: NewBudgetPlanFormProps) => {
     const { toast } = useToast();
     const { user } = useAuth();
     const [step, setStep] = useState<"initial" | "expenses">("initial");
     const [initialBudget, setInitialBudget] = useState("");
     const [savingsPercentage, setSavingsPercentage] = useState("");
+
+    // Calcular el siguiente mes disponible
+    const nextAvailableMonth = useMemo(() => {
+        const today = new Date();
+        let candidateMonth = startOfMonth(today);
+        
+        // Buscar el siguiente mes que no tenga plan
+        while (true) {
+            const hasPlaneForMonth = existingPlans.some(plan => {
+                const planDate = new Date(plan.date);
+                return isSameMonth(planDate, candidateMonth);
+            });
+            
+            if (!hasPlaneForMonth) {
+                return candidateMonth;
+            }
+            
+            candidateMonth = addMonths(candidateMonth, 1);
+            
+            // Límite de seguridad: máximo 24 meses hacia adelante
+            if (candidateMonth > addMonths(today, 24)) {
+                return startOfMonth(today);
+            }
+        }
+    }, [existingPlans]);
+
+    const formattedMonth = format(nextAvailableMonth, "MMMM yyyy", { locale: es });
 
     const handleInitialSubmit = (e: React.FormEvent) => {
         e.preventDefault();
@@ -63,7 +94,7 @@ const NewBudgetPlanForm = ({ onPlanCreated }: NewBudgetPlanFormProps) => {
         }
 
         try {
-            // Insert budget plan
+            // Insert budget plan con el mes calculado
             const { data: planData, error: planError } = await supabase
                 .from('budget_plans')
                 .insert({
@@ -73,7 +104,7 @@ const NewBudgetPlanForm = ({ onPlanCreated }: NewBudgetPlanFormProps) => {
                     savings_amount: savingsAmount,
                     spending_amount: spendingAmount,
                     remaining_amount: spendingAmount - totalExpenses,
-                    date: new Date().toISOString()
+                    date: nextAvailableMonth.toISOString()
                 })
                 .select()
                 .single();
@@ -131,10 +162,19 @@ const NewBudgetPlanForm = ({ onPlanCreated }: NewBudgetPlanFormProps) => {
 
     return (
         <Card className="p-6 max-w-md mx-auto">
-            <h2 className="text-2xl font-semibold mb-6">Crear Nuevo Plan Quincenal</h2>
+            <h2 className="text-2xl font-semibold mb-2">Crear Nuevo Plan Mensual</h2>
+            
+            {/* Indicador del mes */}
+            <div className="flex items-center gap-2 mb-6 p-3 rounded-lg bg-primary/10 text-primary">
+                <Calendar className="h-5 w-5" />
+                <span className="font-medium capitalize">
+                    Plan para: {formattedMonth}
+                </span>
+            </div>
+
             <form onSubmit={handleInitialSubmit} className="space-y-6">
                 <div className="space-y-2">
-                    <Label htmlFor="initialBudget">Presupuesto Quincenal</Label>
+                    <Label htmlFor="initialBudget">Presupuesto Mensual</Label>
                     <Input
                         id="initialBudget"
                         type="number"

@@ -1,20 +1,26 @@
 import { useMemo } from "react";
 import { Alert, AlertDescription, AlertTitle } from "./ui/alert";
 import { CreditCard, BANK_CONFIGS } from "../types/creditCard";
-import { AlertTriangle, Calendar, CreditCard as CreditCardIcon, Clock } from "lucide-react";
+import { Transaction } from "../types/transaction";
+import { AlertTriangle, Calendar, CreditCard as CreditCardIcon, Clock, DollarSign } from "lucide-react";
+import { format, differenceInDays } from "date-fns";
+import { es } from "date-fns/locale";
 
 interface CardPaymentAlertsProps {
     creditCards: CreditCard[];
+    transactions?: Transaction[];
+    daysBeforeAlert?: number; // Días antes para mostrar alerta (default: 3)
 }
 
 interface CardAlert {
     card: CreditCard;
-    type: 'payment' | 'cutoff' | 'expiration';
+    type: 'payment' | 'cutoff' | 'expiration' | 'payment_due';
     daysUntil: number;
     date: Date;
+    amount?: number; // Monto a pagar (para payment_due)
 }
 
-const CardPaymentAlerts = ({ creditCards }: CardPaymentAlertsProps) => {
+const CardPaymentAlerts = ({ creditCards, transactions = [], daysBeforeAlert = 3 }: CardPaymentAlertsProps) => {
     const alerts = useMemo(() => {
         const today = new Date();
         today.setHours(0, 0, 0, 0);
@@ -42,17 +48,19 @@ const CardPaymentAlerts = ({ creditCards }: CardPaymentAlertsProps) => {
             // Calcular días restantes para corte
             const cutoffDiff = Math.ceil((cutoffDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
 
-            // Alertar si falta 1 día o es hoy (0 días)
-            if (paymentDiff <= 1 && paymentDiff >= 0) {
+            // Alertar si falta poco para pago (según daysBeforeAlert)
+            if (paymentDiff <= daysBeforeAlert && paymentDiff >= 0) {
                 cardAlerts.push({
                     card,
                     type: 'payment',
                     daysUntil: paymentDiff,
                     date: paymentDate,
+                    amount: card.current_balance || 0,
                 });
             }
 
-            if (cutoffDiff <= 1 && cutoffDiff >= 0) {
+            // Alertar si falta poco para corte
+            if (cutoffDiff <= daysBeforeAlert && cutoffDiff >= 0) {
                 cardAlerts.push({
                     card,
                     type: 'cutoff',
@@ -83,8 +91,50 @@ const CardPaymentAlerts = ({ creditCards }: CardPaymentAlertsProps) => {
             }
         });
 
+        // Alertas basadas en transacciones con fechas de pago próximas
+        // Agrupar transacciones por tarjeta y fecha de pago
+        const paymentDueDates = new Map<string, { card: CreditCard; dueDate: Date; totalAmount: number }>();
+        
+        transactions.forEach(tx => {
+            if (tx.credit_card_id && tx.payment_due_date && tx.type === 'expense') {
+                const dueDate = new Date(tx.payment_due_date);
+                dueDate.setHours(0, 0, 0, 0);
+                const dueDiff = differenceInDays(dueDate, today);
+                
+                // Solo mostrar si está próximo a vencer y no ha pasado
+                if (dueDiff <= daysBeforeAlert && dueDiff >= 0) {
+                    const card = creditCards.find(c => c.id === tx.credit_card_id);
+                    if (card) {
+                        const key = `${tx.credit_card_id}-${tx.payment_due_date}`;
+                        const existing = paymentDueDates.get(key);
+                        if (existing) {
+                            existing.totalAmount += tx.amount;
+                        } else {
+                            paymentDueDates.set(key, {
+                                card,
+                                dueDate,
+                                totalAmount: tx.amount,
+                            });
+                        }
+                    }
+                }
+            }
+        });
+
+        // Agregar alertas de transacciones con fecha de pago próxima
+        paymentDueDates.forEach(({ card, dueDate, totalAmount }) => {
+            const dueDiff = differenceInDays(dueDate, today);
+            cardAlerts.push({
+                card,
+                type: 'payment_due',
+                daysUntil: dueDiff,
+                date: dueDate,
+                amount: totalAmount,
+            });
+        });
+
         return cardAlerts.sort((a, b) => a.daysUntil - b.daysUntil);
-    }, [creditCards]);
+    }, [creditCards, transactions, daysBeforeAlert]);
 
     if (alerts.length === 0) {
         return null;
@@ -126,16 +176,24 @@ const CardPaymentAlerts = ({ creditCards }: CardPaymentAlertsProps) => {
                                     alert.daysUntil === 0 ? (
                                         <span className="font-semibold">
                                             ¡Hoy es tu fecha límite de pago! 
-                                            {alert.card.current_balance && alert.card.current_balance > 0 && (
-                                                <span> Deuda pendiente: ${alert.card.current_balance.toLocaleString("es-MX")}</span>
+                                            {alert.amount && alert.amount > 0 && (
+                                                <span> Deuda pendiente: ${alert.amount.toLocaleString("es-MX")}</span>
+                                            )}
+                                        </span>
+                                    ) : alert.daysUntil === 1 ? (
+                                        <span>
+                                            <Calendar className="h-3 w-3 inline mr-1" />
+                                            Mañana es tu fecha límite de pago (día {alert.card.payment_day}).
+                                            {alert.amount && alert.amount > 0 && (
+                                                <span> Deuda pendiente: ${alert.amount.toLocaleString("es-MX")}</span>
                                             )}
                                         </span>
                                     ) : (
                                         <span>
                                             <Calendar className="h-3 w-3 inline mr-1" />
-                                            Mañana es tu fecha límite de pago (día {alert.card.payment_day}).
-                                            {alert.card.current_balance && alert.card.current_balance > 0 && (
-                                                <span> Deuda pendiente: ${alert.card.current_balance.toLocaleString("es-MX")}</span>
+                                            Tu fecha límite de pago es en {alert.daysUntil} días (día {alert.card.payment_day}).
+                                            {alert.amount && alert.amount > 0 && (
+                                                <span> Deuda pendiente: ${alert.amount.toLocaleString("es-MX")}</span>
                                             )}
                                         </span>
                                     )
@@ -144,12 +202,34 @@ const CardPaymentAlerts = ({ creditCards }: CardPaymentAlertsProps) => {
                                         <span className="font-semibold">
                                             ¡Hoy es tu fecha de corte! Los gastos a partir de mañana se reflejarán en el siguiente estado de cuenta.
                                         </span>
-                                    ) : (
+                                    ) : alert.daysUntil === 1 ? (
                                         <span>
                                             <Calendar className="h-3 w-3 inline mr-1" />
                                             Mañana es tu fecha de corte (día {alert.card.cutoff_day}). Los gastos de hoy aún entran en este periodo.
                                         </span>
+                                    ) : (
+                                        <span>
+                                            <Calendar className="h-3 w-3 inline mr-1" />
+                                            Tu fecha de corte es en {alert.daysUntil} días (día {alert.card.cutoff_day}).
+                                        </span>
                                     )
+                                ) : alert.type === 'payment_due' ? (
+                                    <span>
+                                        <DollarSign className="h-3 w-3 inline mr-1" />
+                                        {alert.daysUntil === 0 ? (
+                                            <span className="font-semibold">
+                                                ¡Hoy vence el pago de ${alert.amount?.toLocaleString("es-MX")} del corte del {format(alert.date, "d 'de' MMMM", { locale: es })}!
+                                            </span>
+                                        ) : alert.daysUntil === 1 ? (
+                                            <span className="font-semibold">
+                                                Mañana vence el pago de ${alert.amount?.toLocaleString("es-MX")} del estado de cuenta.
+                                            </span>
+                                        ) : (
+                                            <span>
+                                                Tienes un pago de ${alert.amount?.toLocaleString("es-MX")} que vence el {format(alert.date, "d 'de' MMMM", { locale: es })} ({alert.daysUntil} días).
+                                            </span>
+                                        )}
+                                    </span>
                                 ) : (
                                     <span>
                                         <Clock className="h-3 w-3 inline mr-1" />

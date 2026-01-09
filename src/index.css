@@ -89,6 +89,16 @@
     @apply border-border;
   }
 
+  /* Ocultar scrollbar pero mantener funcionalidad de scroll */
+  *::-webkit-scrollbar {
+    display: none;
+  }
+
+  * {
+    -ms-overflow-style: none;  /* IE and Edge */
+    scrollbar-width: none;  /* Firefox */
+  }
+
   body {
     @apply bg-background text-foreground;
     margin: 0;

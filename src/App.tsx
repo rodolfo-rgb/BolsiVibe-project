@@ -9,7 +9,7 @@ import Settings from "./pages/Settings";
 import Education from "./pages/Education";
 import AccountDetails from "./pages/AccountDetails";
 import CreditCardDetails from "./pages/CreditCardDetails";
-import QuinceReport from "./components/reports/QuincenalReport";
+import MonthlyReport from "./components/reports/MonthlyReport";
 import AuthPage from "./components/auth/AuthPage";
 import { SidebarProvider } from "./components/ui/sidebar";
 import { Toaster } from "./components/ui/toaster";
@@ -30,11 +30,11 @@ function AppContent() {
 
   return (
     <SidebarProvider>
-      <div className="min-h-screen bg-background w-full flex">
+      <div className="h-screen bg-background w-full flex overflow-hidden">
         <AppSidebar />
-        <div className="flex-1 flex flex-col min-h-screen ml-[352px]">
+        <div className="flex-1 flex flex-col h-screen ml-[320px] overflow-hidden">
           <Header />
-          <main className="p-4 flex-grow">
+          <main className="p-4 flex-grow overflow-y-auto">
 
             <Routes>
               <Route path="/" element={<Index />} />
@@ -44,7 +44,7 @@ function AppContent() {
               <Route path="/education" element={<Education />} />
               <Route path="/account/:id" element={<AccountDetails />} />
               <Route path="/credit-card/:id" element={<CreditCardDetails />} />
-              <Route path="/report" element={<QuinceReport />} />
+              <Route path="/report" element={<MonthlyReport />} />
             </Routes>
 
           </main>

@@ -55,6 +55,7 @@ export interface CreditCard {
     current_balance: number | null;
     payment_day: number;
     cutoff_day: number;
+    days_until_payment: number; // Días después del corte para la fecha límite de pago
     bank?: BankType;
     bank_name?: string;
     expiration_date?: string; // Formato: MM/YY o YYYY-MM

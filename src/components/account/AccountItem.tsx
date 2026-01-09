@@ -7,6 +7,7 @@ import {
     DropdownMenuTrigger,
 } from "../ui/dropdown-menu";
 import { Account } from "../../types/accounts";
+import { BANK_CONFIGS } from "../../types/creditCard";
 
 interface AccountItemProps {
     account: Account;
@@ -18,10 +19,23 @@ interface AccountItemProps {
 const AccountItem = ({ account, onEdit, onDelete }: AccountItemProps) => {
     const isCartera = account.name === "Cartera";
 
+    const getBankDisplayName = () => {
+        if (!account.bank) return null;
+        if (account.bank === "otro" && account.bank_name) {
+            return account.bank_name;
+        }
+        return BANK_CONFIGS[account.bank]?.name || null;
+    };
+
+    const bankName = getBankDisplayName();
+
     return (
         <div className="flex items-center justify-between p-4 bg-secondary rounded-lg">
             <div>
                 <span className="font-medium">{account.name}</span>
+                {bankName && (
+                    <p className="text-xs text-muted-foreground">{bankName}</p>
+                )}
                 <p className="text-sm text-muted-foreground">
                     ${(account.balance ?? 0).toLocaleString("es-ES")}
                 </p>

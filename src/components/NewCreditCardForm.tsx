@@ -16,6 +16,7 @@ interface NewCreditCardFormProps {
     limit_amount: number;
     payment_day: number;
     cutoff_day: number;
+    days_until_payment: number;
     bank: BankType;
     bank_name?: string;
     expiration_date?: string;
@@ -25,6 +26,7 @@ interface NewCreditCardFormProps {
     limit_amount?: number;
     payment_day?: number;
     cutoff_day?: number;
+    days_until_payment?: number;
     bank?: BankType;
     bank_name?: string;
     expiration_date?: string;
@@ -40,6 +42,7 @@ const NewCreditCardForm = ({ isOpen, onClose, onSubmit, initialValues }: NewCred
       limit_amount: 1000,
       cutoff_month: "1",
       cutoff_day: 1,
+      days_until_payment: 20,
       payment_day: 1,
       bank: "otro" as BankType,
       bank_name: "",
@@ -57,6 +60,7 @@ const NewCreditCardForm = ({ isOpen, onClose, onSubmit, initialValues }: NewCred
         ...initialValues,
         cutoff_month: "1",
         cutoff_day: initialValues.cutoff_day || 1,
+        days_until_payment: initialValues.days_until_payment || 20,
         payment_day: initialValues.payment_day || 1,
         bank,
         bank_name: initialValues.bank_name || "",
@@ -66,8 +70,8 @@ const NewCreditCardForm = ({ isOpen, onClose, onSubmit, initialValues }: NewCred
     }
   }, [initialValues, form]);
 
-  const calculatePaymentDay = (cutoffDay: number) => {
-    const paymentDay = cutoffDay + 20;
+  const calculatePaymentDay = (cutoffDay: number, daysUntilPayment: number) => {
+    const paymentDay = cutoffDay + daysUntilPayment;
     return paymentDay > 31 ? paymentDay - 31 : paymentDay;
   };
 
@@ -99,7 +103,16 @@ const NewCreditCardForm = ({ isOpen, onClose, onSubmit, initialValues }: NewCred
       return;
     }
 
-    const paymentDay = calculatePaymentDay(data.cutoff_day);
+    if (data.days_until_payment < 1 || data.days_until_payment > 30) {
+      toast({
+        title: "Error",
+        description: "Los días para pago deben estar entre 1 y 30.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const paymentDay = calculatePaymentDay(data.cutoff_day, data.days_until_payment);
 
     try {
       const expirationDate = data.expiration_month && data.expiration_year 
@@ -110,6 +123,7 @@ const NewCreditCardForm = ({ isOpen, onClose, onSubmit, initialValues }: NewCred
         name: data.name,
         limit_amount: data.limit_amount,
         cutoff_day: data.cutoff_day,
+        days_until_payment: data.days_until_payment,
         payment_day: paymentDay,
         bank: data.bank as BankType,
         bank_name: data.bank === "otro" ? data.bank_name : undefined,
@@ -152,12 +166,12 @@ const NewCreditCardForm = ({ isOpen, onClose, onSubmit, initialValues }: NewCred
 
   return (
     <Sheet open={isOpen} onOpenChange={onClose}>
-      <SheetContent>
+      <SheetContent className="flex flex-col h-full overflow-hidden">
         <SheetHeader>
           <SheetTitle>{initialValues ? "Editar Tarjeta" : "Nueva Tarjeta de Crédito"}</SheetTitle>
         </SheetHeader>
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4 mt-4">
+          <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4 mt-4 flex-1 overflow-y-auto pb-4">
             <FormField
               control={form.control}
               name="name"
@@ -277,6 +291,31 @@ const NewCreditCardForm = ({ isOpen, onClose, onSubmit, initialValues }: NewCred
                       }}
                     />
                   </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="days_until_payment"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Días para Pago (después del corte)</FormLabel>
+                  <FormControl>
+                    <Input
+                      type="number"
+                      min="1"
+                      max="30"
+                      {...field}
+                      onChange={e => {
+                        const value = Math.min(30, Math.max(1, Number(e.target.value)));
+                        field.onChange(value);
+                      }}
+                    />
+                  </FormControl>
+                  <p className="text-xs text-muted-foreground">
+                    Días que el banco otorga después del corte como fecha límite de pago
+                  </p>
                   <FormMessage />
                 </FormItem>
               )}

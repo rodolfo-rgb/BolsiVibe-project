@@ -49,7 +49,7 @@ export const useAccounts = () => {
         }
     };
 
-    const addAccount = async (data: { name: string; balance: number }) => {
+    const addAccount = async (data: { name: string; balance: number; bank?: string; bank_name?: string }) => {
         if (!user) {
             toast({
                 title: "Error",
@@ -84,7 +84,7 @@ export const useAccounts = () => {
         }
     };
 
-    const editAccount = async (id: string, data: { name: string; balance: number }) => {
+    const editAccount = async (id: string, data: { name: string; balance: number; bank?: string; bank_name?: string }) => {
         if (!user) {
             toast({
                 title: "Error",

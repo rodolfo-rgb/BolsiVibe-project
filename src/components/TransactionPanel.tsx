@@ -55,7 +55,7 @@ const TransactionsPanel = () => {
                 }
             }
 
-            // Verificar si hay gastos pendientes en el plan quincenal
+            // Verificar si hay gastos pendientes en el plan mensual
             const { data: budgetPlan } = await supabase
                 .from("budget_plans")
                 .select(`
@@ -184,7 +184,7 @@ const TransactionsPanel = () => {
                 <Alert variant="destructive" className="mb-4">
                     <AlertTriangle className="h-4 w-4" />
                     <AlertDescription>
-                        Advertencia: Esta transacción supera el monto disponible y tienes gastos pendientes en tu plan quincenal.
+                        Advertencia: Esta transacción supera el monto disponible y tienes gastos pendientes en tu plan mensual.
                         Te recomendamos revisar tu presupuesto.
                     </AlertDescription>
                 </Alert>

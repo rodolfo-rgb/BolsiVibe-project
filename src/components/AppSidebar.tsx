@@ -58,8 +58,8 @@ export default function AppSidebar() {
     }
 
     return (
-        <div className="fixed top-0 left-0 h-screen p-8 z-50">
-            <aside className="bg-gradient-to-br from-gray-800 to-gray-900 h-[calc(100vh-64px)] w-72 rounded-xl overflow-hidden shadow-xl">
+        <div className="fixed top-0 left-0 h-screen p-4 z-50">
+            <aside className="bg-gradient-to-br from-gray-800 to-gray-900 h-[calc(100vh-32px)] w-72 rounded-xl overflow-hidden shadow-xl flex flex-col">
                 <div className="relative border-b border-white/20">
                     <div className="flex items-center gap-4 py-6 px-8">
                         <span className="text-xl font-semibold">
