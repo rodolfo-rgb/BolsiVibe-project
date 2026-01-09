@@ -11,29 +11,14 @@ import {
     DropdownMenuTrigger,
 } from "./ui/dropdown-menu";
 import { Button } from "./ui/button";
-import { useToast } from "./ui/use-toast";
 
 const Header: React.FC = () => {
     const location = useLocation();
     const navigate = useNavigate();
     const { user, signOut } = useAuth();
-    const { toast } = useToast();
 
     const handleSignOut = async () => {
-        try {
-            await signOut();
-            toast({
-                title: "Sesión cerrada",
-                description: "Has cerrado sesión exitosamente",
-            });
-            navigate('/');
-        } catch (error) {
-            toast({
-                title: "Error",
-                description: "No se pudo cerrar la sesión",
-                variant: "destructive",
-            });
-        }
+        await signOut();
     };
 
     // Obtener la ruta actual y formatearla

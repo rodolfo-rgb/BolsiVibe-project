@@ -12,6 +12,16 @@ import { Alert, AlertDescription } from "../components/ui/alert";
 import { AlertTriangle } from "lucide-react";
 import { supabase } from "../integrations/supabase/client";
 import { useAuth } from "../lib/auth";
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+} from "./ui/alert-dialog";
 
 const TransactionsPanel = () => {
     const { transactions, addTransaction, deleteTransaction } = useTransactions();
@@ -21,6 +31,8 @@ const TransactionsPanel = () => {
     const [isNewTransactionFormOpen, setIsNewTransactionFormOpen] = useState(false);
     const [filter, setFilter] = useState<"all" | "account" | "credit">("all");
     const [showBudgetWarning, setShowBudgetWarning] = useState(false);
+    const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+    const [transactionToDelete, setTransactionToDelete] = useState<Transaction | null>(null);
 
     const validateTransaction = async (data: TransactionFormData) => {
         if (data.type === "expense") {
@@ -137,9 +149,16 @@ const TransactionsPanel = () => {
     });
 
     const handleDeleteTransaction = async (transaction: Transaction) => {
-        if (window.confirm("¿Estás seguro de que deseas eliminar esta transacción?")) {
-            await deleteTransaction(transaction);
+        setTransactionToDelete(transaction);
+        setDeleteDialogOpen(true);
+    };
+
+    const confirmDeleteTransaction = async () => {
+        if (transactionToDelete) {
+            await deleteTransaction(transactionToDelete);
+            setTransactionToDelete(null);
         }
+        setDeleteDialogOpen(false);
     };
 
     return (
@@ -236,6 +255,29 @@ const TransactionsPanel = () => {
                 onSubmit={handleAddTransaction}
                 accounts={accounts}
             />
+
+            <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+                <AlertDialogContent>
+                    <AlertDialogHeader>
+                        <AlertDialogTitle>¿Eliminar transacción?</AlertDialogTitle>
+                        <AlertDialogDescription>
+                            Esta acción no se puede deshacer. Se eliminará la transacción 
+                            "{transactionToDelete?.description}" permanentemente.
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                        <AlertDialogCancel onClick={() => setTransactionToDelete(null)}>
+                            Cancelar
+                        </AlertDialogCancel>
+                        <AlertDialogAction 
+                            onClick={confirmDeleteTransaction}
+                            className="bg-red-500 hover:bg-red-600"
+                        >
+                            Eliminar
+                        </AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
         </div>
     );
 };

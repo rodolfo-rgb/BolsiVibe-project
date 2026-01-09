@@ -43,6 +43,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                 // Clear session and user state
                 setSession(null);
                 setUser(null);
+                return; // Important: return early to prevent overwriting with null session
             }
 
             setSession(session);
@@ -56,17 +57,33 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     const signOut = async () => {
         try {
-            await supabase.auth.signOut();
+            // First, clear local state
+            setSession(null);
+            setUser(null);
+            
+            // Then sign out from Supabase
+            const { error } = await supabase.auth.signOut();
+            
+            if (error) {
+                console.error("Error signing out:", error);
+                // Even if there's an error, clear localStorage to force logout
+                localStorage.removeItem('sb-tipkczahbkmjoxpagcty-auth-token');
+            }
+            
             toast({
                 title: "Sesión cerrada",
                 description: "Has cerrado sesión exitosamente",
             });
         } catch (error) {
             console.error("Error signing out:", error);
+            // Force clear session even on error
+            setSession(null);
+            setUser(null);
+            localStorage.removeItem('sb-tipkczahbkmjoxpagcty-auth-token');
+            
             toast({
-                title: "Error",
-                description: "No se pudo cerrar la sesión",
-                variant: "destructive",
+                title: "Sesión cerrada",
+                description: "Se cerró la sesión",
             });
         }
     };

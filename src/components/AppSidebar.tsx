@@ -5,7 +5,6 @@ import { MdCastForEducation } from "react-icons/md"
 import { FaSignOutAlt } from "react-icons/fa"
 import { Link, useLocation } from "react-router-dom"
 import { useAuth } from "../lib/auth"
-import { useToast } from "./ui/use-toast"
 
 const navigationItems = [
     {
@@ -33,22 +32,9 @@ const navigationItems = [
 export default function AppSidebar() {
     const location = useLocation()
     const { signOut } = useAuth()
-    const { toast } = useToast()
 
     const handleSignOut = async () => {
-        try {
-            await signOut()
-            toast({
-                title: "Sesión cerrada",
-                description: "Has cerrado sesión exitosamente.",
-            })
-        } catch (error) {
-            toast({
-                title: "Error",
-                description: "No se pudo cerrar la sesión.",
-                variant: "destructive",
-            })
-        }
+        await signOut()
     }
 
     const isActive = (path: string) => {

@@ -24,12 +24,18 @@
     },
     "asar": true,
     "linux": {
-      "target": ["AppImage"],
+      "target": [
+        "AppImage"
+      ],
       "category": "Finance",
       "icon": "public/Bolsi.png"
     },
     "win": {
-      "target": ["nsis", "portable"],
+      "target": [
+        "nsis",
+        "portable"
+      ],
+      "signAndEditExecutable": false,
       "icon": "public/Bolsi.png"
     },
     "nsis": {
@@ -39,7 +45,9 @@
       "createStartMenuShortcut": true
     },
     "mac": {
-      "target": ["dmg"],
+      "target": [
+        "dmg"
+      ],
       "icon": "public/Bolsi.png",
       "category": "public.app-category.finance"
     }

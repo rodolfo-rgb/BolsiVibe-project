@@ -38,8 +38,14 @@ const DeleteCardDialog = ({
         }
     };
 
+    const handleOpenChange = (open: boolean) => {
+        if (!open && !isDeleting) {
+            onClose();
+        }
+    };
+
     return (
-        <AlertDialog open={isOpen} onOpenChange={onClose}>
+        <AlertDialog open={isOpen} onOpenChange={handleOpenChange}>
             <AlertDialogContent>
                 <AlertDialogHeader>
                     <AlertDialogTitle>¿Estás seguro?</AlertDialogTitle>
@@ -49,7 +55,7 @@ const DeleteCardDialog = ({
                     </AlertDialogDescription>
                 </AlertDialogHeader>
                 <AlertDialogFooter>
-                    <AlertDialogCancel onClick={onClose} disabled={isDeleting}>
+                    <AlertDialogCancel disabled={isDeleting}>
                         Cancelar
                     </AlertDialogCancel>
                     <Button
