@@ -1,4 +1,4 @@
-import { Routes, Route } from "react-router-dom";
+import { Routes, Route, useLocation } from "react-router-dom";
 import Header from "./components/header";
 import AppSidebar from "./components/AppSidebar";
 import Footer from "./components/Footer";
@@ -9,15 +9,29 @@ import Settings from "./pages/Settings";
 import Education from "./pages/Education";
 import AccountDetails from "./pages/AccountDetails";
 import CreditCardDetails from "./pages/CreditCardDetails";
+import ResetPassword from "./pages/ResetPassword";
 import MonthlyReport from "./components/reports/MonthlyReport";
 import AuthPage from "./components/auth/AuthPage";
 import { SidebarProvider } from "./components/ui/sidebar";
 import { Toaster } from "./components/ui/toaster";
 import { AuthProvider, useAuth } from "./lib/auth";
 import { ThemeProvider } from "./hooks/useTheme";
+import { TourProvider } from "./hooks/useTour";
+import AppTour from "./components/tour/AppTour";
 
 function AppContent() {
-  const { session } = useAuth();
+  const { session, isPasswordRecovery } = useAuth();
+  const location = useLocation();
+
+  // Permitir acceso a la página de reset sin autenticación o durante recuperación de contraseña
+  if (location.pathname === "/reset-password" || isPasswordRecovery) {
+    return (
+      <div className="min-h-screen bg-background w-full">
+        <ResetPassword />
+        <Toaster />
+      </div>
+    );
+  }
 
   if (!session) {
     return (
@@ -30,28 +44,30 @@ function AppContent() {
 
   return (
     <SidebarProvider>
-      <div className="h-screen bg-background w-full flex overflow-hidden">
-        <AppSidebar />
-        <div className="flex-1 flex flex-col h-screen ml-[320px] overflow-hidden">
-          <Header />
-          <main className="p-4 flex-grow overflow-y-auto">
+      <AppTour>
+        <div className="h-screen bg-background w-full flex overflow-hidden">
+          <AppSidebar />
+          <div className="flex-1 flex flex-col h-screen ml-[320px] overflow-hidden">
+            <Header />
+            <main className="p-4 flex-grow overflow-y-auto">
 
-            <Routes>
-              <Route path="/" element={<Index />} />
-              <Route path="/transactions" element={<Transactions />} />
-              <Route path="/budget" element={<Budget />} />
-              <Route path="/settings" element={<Settings />} />
-              <Route path="/education" element={<Education />} />
-              <Route path="/account/:id" element={<AccountDetails />} />
-              <Route path="/credit-card/:id" element={<CreditCardDetails />} />
-              <Route path="/report" element={<MonthlyReport />} />
-            </Routes>
+              <Routes>
+                <Route path="/" element={<Index />} />
+                <Route path="/transactions" element={<Transactions />} />
+                <Route path="/budget" element={<Budget />} />
+                <Route path="/settings" element={<Settings />} />
+                <Route path="/education" element={<Education />} />
+                <Route path="/account/:id" element={<AccountDetails />} />
+                <Route path="/credit-card/:id" element={<CreditCardDetails />} />
+                <Route path="/report" element={<MonthlyReport />} />
+              </Routes>
 
-          </main>
-          <Footer />
+            </main>
+            <Footer />
+          </div>
+          <Toaster />
         </div>
-        <Toaster />
-      </div>
+      </AppTour>
     </SidebarProvider>
   );
 }
@@ -60,7 +76,9 @@ function App() {
   return (
     <ThemeProvider>
       <AuthProvider>
-        <AppContent />
+        <TourProvider>
+          <AppContent />
+        </TourProvider>
       </AuthProvider>
     </ThemeProvider>
   );

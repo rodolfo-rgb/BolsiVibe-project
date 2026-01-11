@@ -7,16 +7,18 @@ import { Input } from "../components/ui/input";
 import { Label } from "../components/ui/label";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "../components/ui/alert-dialog";
 import { useToast } from "../components/ui/use-toast";
-import { FileDown, FileText, Moon, Sun, Monitor } from "lucide-react";
+import { FileDown, FileText, Moon, Sun, Monitor, HelpCircle } from "lucide-react";
 import { useAuth } from "../lib/auth";
 import { supabase } from "../integrations/supabase/client";
 import { useTheme } from "../hooks/useTheme";
+import { useTour } from "../hooks/useTour";
 
 const Settings = () => {
     const navigate = useNavigate();
     const { toast } = useToast();
     const { user } = useAuth();
     const { theme, setTheme } = useTheme();
+    const { resetTour } = useTour();
     const [name, setName] = useState("");
     const [isUpdatingName, setIsUpdatingName] = useState(false);
     const [currentPassword, setCurrentPassword] = useState("");
@@ -233,6 +235,33 @@ const Settings = () => {
                                 <p className="text-sm text-muted-foreground">
                                     Selecciona el tema que prefieras. El tema "Sistema" se ajustará automáticamente según las preferencias de tu dispositivo.
                                 </p>
+                            </div>
+
+                            <div className="space-y-4 pt-6 border-t">
+                                <Label>Tour de la Aplicación</Label>
+                                <div className="flex items-center justify-between">
+                                    <div>
+                                        <p className="text-sm font-medium">Ver guía interactiva</p>
+                                        <p className="text-sm text-muted-foreground">
+                                            Revisa nuevamente el tour de las funcionalidades de BolsiVibe.
+                                        </p>
+                                    </div>
+                                    <Button
+                                        variant="outline"
+                                        className="flex items-center gap-2"
+                                        onClick={() => {
+                                            resetTour();
+                                            navigate('/');
+                                            toast({
+                                                title: "Tour iniciado",
+                                                description: "La guía interactiva comenzará en unos segundos.",
+                                            });
+                                        }}
+                                    >
+                                        <HelpCircle className="h-4 w-4" />
+                                        Iniciar Tour
+                                    </Button>
+                                </div>
                             </div>
                         </CardContent>
                     </Card>

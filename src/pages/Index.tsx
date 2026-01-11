@@ -87,7 +87,7 @@ const Index = () => {
                 </div>
 
                 {/* Main Balance Card */}
-                <Card className="relative overflow-hidden border-0 bg-gradient-to-br from-[hsl(212,69%,16%)] to-[hsl(212,69%,22%)] text-white shadow-xl">
+                <Card data-tour="balance-card" className="relative overflow-hidden border-0 bg-gradient-to-br from-[hsl(212,69%,16%)] to-[hsl(212,69%,22%)] text-white shadow-xl">
                     <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxnIGZpbGw9IiNmZmZmZmYiIGZpbGwtb3BhY2l0eT0iMC4wMyI+PHBhdGggZD0iTTM2IDM0djItSDI0di0yaDEyek0zNiAzMHYySDI0di0yaDEyeiIvPjwvZz48L2c+PC9zdmc+')] opacity-50" />
                     <CardContent className="relative p-6 md:p-8">
                         <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-6">
@@ -201,7 +201,7 @@ const Index = () => {
                             <Wallet className="h-4 w-4" />
                             Mis Cuentas
                         </h2>
-                        <div className="flex-1">
+                        <div className="flex-1" data-tour="accounts-panel">
                             <AccountsPanel />
                         </div>
                     </div>
@@ -210,7 +210,7 @@ const Index = () => {
                             <CreditCard className="h-4 w-4" />
                             Tarjetas de Crédito
                         </h2>
-                        <div className="flex-1">
+                        <div className="flex-1" data-tour="credit-cards-panel">
                             <CreditCardsPanel />
                         </div>
                     </div>
@@ -225,7 +225,7 @@ const Index = () => {
                         </h2>
                         <ExpensesByCategoryChart transactions={transactions} title="Gastos por Categoría" />
                     </div>
-                    <div className="flex flex-col gap-3">
+                    <div className="flex flex-col gap-3" data-tour="goals-widget">
                         <GoalsWidget goals={goals} />
                     </div>
                 </div>

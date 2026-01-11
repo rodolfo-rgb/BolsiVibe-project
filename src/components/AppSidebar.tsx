@@ -11,21 +11,25 @@ const navigationItems = [
         title: "Principal",
         url: "/",
         icon: TbHomeFilled,
+        tourId: "nav-home",
     },
     {
         title: "Transacciones",
         url: "/transactions",
         icon: AiOutlineTransaction,
+        tourId: "nav-transactions",
     },
     {
         title: "Presupuesto",
         url: "/budget",
         icon: IoMdCash,
+        tourId: "nav-budget",
     },
     {
         title: "Educación Financiera",
         url: "/education",
         icon: MdCastForEducation,
+        tourId: "nav-education",
     },
 ]
 
@@ -44,7 +48,7 @@ export default function AppSidebar() {
     }
 
     return (
-        <div className="fixed top-0 left-0 h-screen p-4 z-50">
+        <div className="fixed top-0 left-0 h-screen p-4 z-50" data-tour="sidebar">
             <aside className="bg-gradient-to-br from-gray-800 to-gray-900 h-[calc(100vh-32px)] w-72 rounded-xl overflow-hidden shadow-xl flex flex-col">
                 <div className="relative border-b border-white/20">
                     <div className="flex items-center gap-4 py-6 px-8">
@@ -61,6 +65,7 @@ export default function AppSidebar() {
                             <li key={item.title}>
                                 <Link
                                     to={item.url}
+                                    data-tour={item.tourId}
                                     className={`flex items-center gap-4 px-4 py-3 rounded-lg w-full text-white hover:bg-white/10 active:bg-white/30 transition-all duration-200 ${isActive(item.url)
                                             ? "bg-white/10 shadow-md shadow-blue-900"
                                             : ""

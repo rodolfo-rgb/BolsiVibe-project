@@ -22,18 +22,18 @@ export interface GoalContribution {
 }
 
 export const GOAL_ICONS = [
-    { id: "plane", label: "Vacaciones", emoji: "✈️" },
-    { id: "car", label: "Auto", emoji: "🚗" },
-    { id: "home", label: "Casa", emoji: "🏠" },
-    { id: "graduation", label: "Educación", emoji: "🎓" },
-    { id: "ring", label: "Boda", emoji: "💍" },
-    { id: "baby", label: "Bebé", emoji: "👶" },
-    { id: "laptop", label: "Tecnología", emoji: "💻" },
-    { id: "emergency", label: "Emergencia", emoji: "🆘" },
-    { id: "gift", label: "Regalo", emoji: "🎁" },
-    { id: "piggy", label: "Ahorro general", emoji: "🐷" },
-    { id: "health", label: "Salud", emoji: "🏥" },
-    { id: "celebration", label: "Celebración", emoji: "🎉" },
+    { id: "plane", label: "Vacaciones", emoji: "◇" },
+    { id: "car", label: "Auto", emoji: "○" },
+    { id: "home", label: "Casa", emoji: "△" },
+    { id: "graduation", label: "Educación", emoji: "□" },
+    { id: "ring", label: "Boda", emoji: "◎" },
+    { id: "baby", label: "Bebé", emoji: "☆" },
+    { id: "laptop", label: "Tecnología", emoji: "▽" },
+    { id: "emergency", label: "Emergencia", emoji: "◈" },
+    { id: "gift", label: "Regalo", emoji: "◆" },
+    { id: "piggy", label: "Ahorro general", emoji: "●" },
+    { id: "health", label: "Salud", emoji: "◐" },
+    { id: "celebration", label: "Celebración", emoji: "✦" },
 ];
 
 export const GOAL_COLORS = [

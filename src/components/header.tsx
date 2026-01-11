@@ -86,7 +86,7 @@ const Header: React.FC = () => {
                         </label>
                     </div>
                 </div>
-                <div className="hidden xl:block">
+                <div className="hidden xl:block" data-tour="user-menu">
                     <DropdownMenu>
                         <DropdownMenuTrigger asChild>
                             <Button variant="ghost" className="relative gap-2 h-10">

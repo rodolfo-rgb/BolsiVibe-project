@@ -4,12 +4,14 @@ import { Input } from "../ui/input";
 import { useToast } from "../../hooks/use-toast";
 import { supabase } from "../../integrations/supabase/client";
 import { AuthError } from "@supabase/supabase-js";
+import { Mail, CheckCircle } from "lucide-react";
 
 const RegisterForm = () => {
     const [name, setName] = useState("");
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [isLoading, setIsLoading] = useState(false);
+    const [registrationSuccess, setRegistrationSuccess] = useState(false);
     const { toast } = useToast();
 
     const handleSubmit = async (e: React.FormEvent) => {
@@ -44,12 +46,15 @@ const RegisterForm = () => {
 
             if (error) throw error;
 
-            // Sign out immediately after registration to force login
+            // Sign out immediately after registration to force email verification
             await supabase.auth.signOut();
 
+            // Show success state
+            setRegistrationSuccess(true);
+
             toast({
-                title: "Registro exitoso",
-                description: "Por favor inicia sesión con tus credenciales.",
+                title: "¡Registro exitoso!",
+                description: "Revisa tu correo electrónico para verificar tu cuenta.",
             });
 
             // Reset form
@@ -78,6 +83,49 @@ const RegisterForm = () => {
             setIsLoading(false);
         }
     };
+
+    // Mostrar pantalla de éxito después del registro
+    if (registrationSuccess) {
+        return (
+            <div className="w-full max-w-md mx-auto space-y-6 p-6 bg-white rounded-lg shadow-lg animate-fade-in">
+                <div className="text-center space-y-4">
+                    <div className="flex justify-center">
+                        <div className="bg-green-100 p-4 rounded-full">
+                            <CheckCircle className="h-12 w-12 text-green-600" />
+                        </div>
+                    </div>
+                    <h2 className="text-2xl font-bold text-gray-900">¡Registro Exitoso!</h2>
+                    <div className="flex justify-center">
+                        <div className="bg-blue-50 p-3 rounded-full">
+                            <Mail className="h-8 w-8 text-blue-600" />
+                        </div>
+                    </div>
+                    <p className="text-gray-600">
+                        Hemos enviado un correo de verificación a:
+                    </p>
+                    <p className="font-semibold text-gray-900">{email}</p>
+                    <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 text-left">
+                        <p className="text-sm text-amber-800">
+                            <strong>Importante:</strong> Revisa tu bandeja de entrada y haz clic en el enlace de verificación para activar tu cuenta. 
+                            Si no lo encuentras, revisa tu carpeta de spam.
+                        </p>
+                    </div>
+                    <Button 
+                        variant="outline" 
+                        onClick={() => {
+                            setRegistrationSuccess(false);
+                            setName("");
+                            setEmail("");
+                            setPassword("");
+                        }}
+                        className="w-full"
+                    >
+                        Volver al inicio de sesión
+                    </Button>
+                </div>
+            </div>
+        );
+    }
 
     return (
         <div className="w-full max-w-md mx-auto space-y-6 p-6 bg-white rounded-lg shadow-lg animate-fade-in">
