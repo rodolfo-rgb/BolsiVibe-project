@@ -125,7 +125,6 @@ export const tourSteps: StepType[] = [
         <h3 className="font-bold text-lg">Tu Perfil 👤</h3>
         <p>
           Desde aquí puedes acceder a la configuración de tu cuenta, cambiar
-          ajustes y cerrar sesión.
         </p>
       </div>
     ),

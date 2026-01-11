@@ -117,10 +117,11 @@ export default function AppTour({ children }: AppTourProps) {
         popover: (base) => ({
           ...base,
           borderRadius: '12px',
-          backgroundColor: 'var(--background)',
-          color: 'var(--foreground)',
+          backgroundColor: 'hsl(var(--background))',
+          color: 'hsl(212, 69%, 16%)',
           boxShadow: '0 10px 40px rgba(0, 0, 0, 0.2)',
-          border: '1px solid var(--border)',
+          border: '1px solid hsl(var(--border))',
+          opacity: 1,
         }),
         maskArea: (base) => ({
           ...base,
